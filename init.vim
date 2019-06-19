@@ -70,10 +70,12 @@ Plug 'prabirshrestha/asyncomplete.vim'
 Plug 'prabirshrestha/asyncomplete-lsp.vim'
 Plug 'prabirshrestha/asyncomplete-buffer.vim'
 Plug 'prabirshrestha/asyncomplete-file.vim'
-Plug 'yami-beta/asyncomplete-omni.vim'
+Plug 'prabirshrestha/asyncomplete-omni.vim'
 
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
+
+Plug 'https://github.com/Alok/notational-fzf-vim'
 
 Plug 'scrooloose/nerdtree'
 Plug 'uptech/alt'
@@ -86,6 +88,9 @@ Plug 'junegunn/vim-easy-align'
 Plug 'gcmt/wildfire.vim'
 
 Plug 'HerringtonDarkholme/yats.vim'
+Plug 'vim-ruby/vim-ruby'
+
+Plug 'prettier/vim-prettier', { 'do': 'yarn install' }
 
 call plug#end()
 
@@ -98,7 +103,7 @@ let mapleader = ","
 set nobackup
 set noswapfile
 
-set lazyredraw
+set hidden
 
 syntax enable
 filetype indent on
@@ -113,16 +118,21 @@ nnoremap <leader>mr :source $MYVIMRC<cr>
 
 set grepprg=rg\ --vimgrep
 
+let g:nv_search_paths = ['~/Notes']
+nnoremap <space>n :NV<cr>
+
 " -----------------------------------------------------------------------------
 " Appearance                                                        @appearance
 " -----------------------------------------------------------------------------
 
+set showtabline=0
 set scrolloff=10
 set mouse=a
 set number
 set cursorline
 set showmatch
 set nowrap
+set signcolumn=yes
 
 if (has("termguicolors"))
   set termguicolors
@@ -153,17 +163,33 @@ let g:gitgutter_map_keys = 0
 " Editing                                                              @editing
 " -----------------------------------------------------------------------------
 
-set tabstop=4
-set softtabstop=4
+set autoread                                                                                                                                                                                    
+au CursorHold * checktime  
+
+set smartindent
 set expandtab
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
+
+" Start interactive EasyAlign in visual mode (e.g. vipga)
+xmap ga <Plug>(EasyAlign)
+
+" Start interactive EasyAlign for a motion/text object (e.g. gaip)
+nmap ga <Plug>(EasyAlign)
 
 " Asyncomplete
 
 let g:asyncomplete_remove_duplicates = 1
-let g:asyncomplete_smart_completion = 1
-let g:asyncomplete_auto_popup = 1
+let g:asyncomplete_smart_completion = 0
+let g:asyncomplete_auto_popup = 0
 set completeopt+=preview
 autocmd! CompleteDone * if pumvisible() == 0 | pclose | endif
+
+" Tab completion
+inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
 
 " Asyncomplete sources
 
@@ -206,6 +232,12 @@ if executable('solargraph')
         \ })
 endif
 
+" Prettier
+let g:prettier#quickfix_enabled = 0
+let g:prettier#exec_cmd_async = 1
+
+let g:prettier#autoformat = 0
+autocmd BufWritePre *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md,*.vue,*.yaml,*.html,*.rb PrettierAsync
 
 " -----------------------------------------------------------------------------
 " Navigation                                                        @navigation
@@ -213,6 +245,11 @@ endif
 
 nnoremap j gj
 nnoremap k gk
+
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-h> <C-w>h
+nnoremap <C-l> <C-w>l
 
 let g:tabman_toggle = '<space>t'
 let g:tabman_side = 'right'
@@ -324,27 +361,56 @@ let g:fzf_colors =
 
 augroup language_config
   au!
+  autocmd FileType javascript setlocal expandtab
+  autocmd FileType javascript setlocal tabstop=2
+  autocmd FileType javascript setlocal shiftwidth=2
+  autocmd FileType javascript setlocal softtabstop=2
+
+  autocmd FileType typescript setlocal expandtab
   autocmd FileType typescript setlocal tabstop=2
   autocmd FileType typescript setlocal shiftwidth=2
   autocmd FileType typescript setlocal softtabstop=2
 
+  autocmd FileType typescript.tsx setlocal expandtab
   autocmd FileType typescript.tsx setlocal tabstop=2
   autocmd FileType typescript.tsx setlocal shiftwidth=2
   autocmd FileType typescript.tsx setlocal softtabstop=2
 
-  autocmd BufWritePre *ts,*.tsx silent LspDocumentFormatSync
-
+  autocmd FileType ruby setlocal expandtab
   autocmd FileType ruby setlocal tabstop=2
   autocmd FileType ruby setlocal shiftwidth=2
   autocmd FileType ruby setlocal softtabstop=2
+
+  autocmd FileType markdown setlocal expandtab
+  autocmd FileType markdown setlocal tabstop=2
+  autocmd FileType markdown setlocal shiftwidth=2
+  autocmd FileType markdown setlocal softtabstop=2
 augroup END
 
 "
 " Lsp
 "
 
+let g:lsp_diagnostics_enabled = 1
 let g:lsp_signs_enabled = 1
 let g:lsp_diagnostics_echo_cursor = 1
+let g:lsp_virtual_text_enabled = 0
+
+let g:lsp_signs_error = {'text': '!!'}
+let g:lsp_signs_warning = {'text': '??'}
+let g:lsp_signs_hint = {'text': '..'}
+let g:lsp_signs_information = {'text': '..'}
+
+let s:severity_sign_names_mapping = {
+    \ 1: 'LspError',
+    \ 2: 'LspWarning',
+    \ 3: 'LspInformation',
+    \ 4: 'LspHint',
+    \ }
+
+if !hlexists('LspErrorText')
+    highlight link LspErrorText Error
+endif
 
 nnoremap gd :LspDefinition<cr>
 nnoremap gD :LspDeclaration<cr>
