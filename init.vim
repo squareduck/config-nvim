@@ -37,6 +37,7 @@
 " gp - Go to previous error
 " gn - Go to next error
 " gt - Go to type definition
+" <space>e - List errors and warnings
 " <space>a - List code actions
 " <space>f - Format buffer
 " <space>h - Show hover information
@@ -56,10 +57,15 @@
 call plug#begin('~/.vim/plugged')
 
 Plug 'drewtempelmeyer/palenight.vim'
+Plug 'NLKNguyen/papercolor-theme'
 Plug 'itchyny/lightline.vim'
+
+Plug 'raghur/vim-ghost'
+Plug 'KabbAmine/zeavim.vim'
 
 Plug 'itchyny/vim-gitbranch'
 Plug 'airblade/vim-gitgutter'
+Plug 'lambdalisue/gina.vim'
 
 Plug 'kien/tabman.vim'
 
@@ -75,8 +81,6 @@ Plug 'prabirshrestha/asyncomplete-omni.vim'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 
-Plug 'https://github.com/Alok/notational-fzf-vim'
-
 Plug 'scrooloose/nerdtree'
 Plug 'uptech/alt'
 Plug 'dyng/ctrlsf.vim'
@@ -88,7 +92,11 @@ Plug 'junegunn/vim-easy-align'
 Plug 'gcmt/wildfire.vim'
 
 Plug 'HerringtonDarkholme/yats.vim'
+" Plug 'leafgarland/typescript-vim'
 Plug 'vim-ruby/vim-ruby'
+Plug 'calviken/vim-gdscript3'
+Plug 'ElmCast/elm-vim'
+Plug 'rust-lang/rust.vim'
 
 Plug 'prettier/vim-prettier', { 'do': 'yarn install' }
 
@@ -106,6 +114,14 @@ set noswapfile
 set hidden
 
 syntax enable
+syntax sync fromstart
+syntax sync minlines=200
+
+noremap <f12> <esc>:syntax sync fromstart<cr>
+inoremap <f12> <C-o>:syntax sync fromstart<cr>
+
+set lazyredraw
+
 filetype indent on
 
 set wildmenu
@@ -118,8 +134,7 @@ nnoremap <leader>mr :source $MYVIMRC<cr>
 
 set grepprg=rg\ --vimgrep
 
-let g:nv_search_paths = ['~/Notes']
-nnoremap <space>n :NV<cr>
+nnoremap <silent> <space>w :cclose<cr>:lclose<cr>
 
 " -----------------------------------------------------------------------------
 " Appearance                                                        @appearance
@@ -138,8 +153,13 @@ if (has("termguicolors"))
   set termguicolors
 endif
 
+" Palenight
 set background=dark
 colorscheme palenight
+
+" Papercolor
+" set background=light
+" colorscheme PaperColor
 
 set noshowmode
 let g:lightline = {
@@ -388,6 +408,16 @@ augroup language_config
 augroup END
 
 "
+" Elm
+"
+let g:elm_setup_keybindings = 0
+
+"
+" Rust
+"
+let g:rustfmt_autosave = 1
+
+"
 " Lsp
 "
 
@@ -418,6 +448,7 @@ nnoremap gp :LspPreviousError<cr>
 nnoremap gn :LspNextError<cr>
 nnoremap gt :LspTypeDefinition<cr>
 
+nnoremap <space>e :LspDocumentDiagnostics<cr>
 nnoremap <space>a :LspCodeAction<cr>
 nnoremap <space>f :LspDocumentFormat<cr>
 nnoremap <space>h :LspHover<cr>
